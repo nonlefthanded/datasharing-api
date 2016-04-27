@@ -17,10 +17,12 @@ function DATASHARING(){
 	}
 
 	this.submitForm = function(){
-
+		console.log('start me up');
 		$$FORM.submit(function(e){
 			e.preventDefault();
-			//console.log($$DEBUG);
+
+			$$FORMDATA = $('#basicAuthForm').find('input[name!=query]').serialize();
+			console.log($$DEBUG);
 
 			$.ajax({
 				type: "GET",
