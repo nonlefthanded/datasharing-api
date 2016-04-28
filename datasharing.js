@@ -1,4 +1,5 @@
 function DATASHARING(){
+
 	this.init = function(){
 		self = this;
 		
@@ -14,16 +15,13 @@ function DATASHARING(){
 
 		self.submitForm();
 		self.getProducts();
+		self.prevNext();
 	}
 
 	this.submitForm = function(){
-		console.log('start me up');
 		$$FORM.submit(function(e){
 			e.preventDefault();
-
 			$$FORMDATA = $('#basicAuthForm').find('input[name!=query]').serialize();
-			console.log($$DEBUG);
-
 			$.ajax({
 				type: "GET",
 				url: $$URL,
@@ -34,16 +32,42 @@ function DATASHARING(){
 				},
 				data: $$FORM.serialize(),
 				success: function (data){
-					//console.log(data);
 					self.display(data,$$SECTION);
-
-					console.log('---------------');
-					console.log($.objectify($('#query').val()));
-					console.log($.unObjectify($$FORMDATA));
-					console.log('---------------');
+					allData = $.extend($.objectify($$FORMDATA),$.objectify($('#query').val()));
+					allData.qVars = $.objectify($('#query').val());
+					console.log(allData);
+					console.log('--^-allData---------------');
 				}
 			});
 		});
+	}
+
+	this.prevNext = function(allData,data){
+		self = this;
+		console.log(self.collectData());
+		console.log(allData);
+		$('#next').click(function(e){
+			e.preventDefault();
+			console.log('whut');
+			_data = self.collectData();
+			lookAhead = {
+				username : _data.username,
+				pwd : _data.pwd,
+				url : _data.url,
+				section : _data.section,
+				page : _data.number+1,
+				size : _data.size
+			};
+			lookAhead.query = '?page=' + lookAhead.page + '&size=' + lookAhead.size;
+			$('#query').val(lookAhead.query);
+		});	
+	}
+
+	this.collectData = function(){
+		$$FORMDATA    = $('#basicAuthForm').find('input[name!=query]').serialize();
+		allData       = $.extend($.objectify($$FORMDATA),$.objectify($('#query').val()));
+		allData.qVars = $.objectify($('#query').val());
+		return allData;
 	}
 
 	this.getProducts = function(){
@@ -78,8 +102,8 @@ function DATASHARING(){
 		$$HOWMANY = $.insertCommas(data.totalElements);
 		$$START   = (data.size*data.number)+1;
 		$$END     = $$START+data.numberOfElements-1;
-		$$RANGE   = '(' + $.insertCommas(data.size) + ' results) ' + $.insertCommas($$START) + ' thru ' + $.insertCommas($$END);
-		$$B       = ['<b>','</b>']
+		$$RANGE   = '(' + $.insertCommas(data.size) + ' result' + $.singlePlural(data.size) + ') ' + $.insertCommas($$START) + ' thru ' + $.insertCommas($$END);
+		i         = $$START;
 		switch(dataType) {
     		case 'agencies':
     			/**
@@ -87,11 +111,11 @@ function DATASHARING(){
     			 *
     			 * console.log('DESIGN FOR AGENCIES DATA');
     			 */
-
         		
         		$$RESULTS.push('<h1>' + $$HOWMANY + ' AGENCIES <small>' + $$RANGE + '</small></h1>');
         		$$RESULTS.push('<table class="table table-striped table-condensed table-hover">');
         		$$RESULTS.push('<tr>');
+        		$$RESULTS.push('<th class="align-right">#</th>');
         		$$RESULTS.push('<th>Account Name</th>');
         		$$RESULTS.push('<th>Address</th>');
         		$$RESULTS.push('<th>Phone</th>');
@@ -116,11 +140,13 @@ function DATASHARING(){
         			$.each(data.content, function(){
         				//console.log(this);
         				$$RESULTS.push('<tr>');
+        					$$RESULTS.push(self.countCell(i));
         					$$RESULTS.push(self.agencyCell(this.accountName,this.accountId));
         					$$RESULTS.push(self.addressCell(this.addresses));
         					$$RESULTS.push(self.phoneCell(this.phones));
         					$$RESULTS.push(self.statusCell(this.status));
         				$$RESULTS.push('</tr>');
+        				i++;
         			});
 
         		}
@@ -133,7 +159,15 @@ function DATASHARING(){
 		$('#results').html($$RESULTS.join(' '));
 	}
 
-	// Helpers for tabular data
+	/**
+	 *
+	 * Reusable helper functions for tabular data.
+	 *
+	 */
+
+	this.countCell = function(n){
+		return '<td class="align-right">' + n + '</td>';
+	}
 
 	this.agencyCell = function(accountName,accountId){
 		return '<td><b><a href="javascript:someFunction(\'' + accountId + '\');">' + accountName + '</a></b></td>';
@@ -143,7 +177,7 @@ function DATASHARING(){
 		if (typeof addressArray != 'object') return '<td>&nbsp;</td>';
 		$$AA = [];
 		$.each(addressArray,function(){
-        	$$AA.push('<p><span class="text-capitalize">' + $$B[0] + this.addressType + $$B[1] + '</span>');
+        	$$AA.push('<p><span class="text-capitalize"><b>' + this.addressType + '</b></span>');
         	$$AA.push('<br />');
         	$$AA.push(this.street);
         	$$AA.push('<br />');
@@ -152,13 +186,14 @@ function DATASHARING(){
         });
 		return '<td class="">' + $$AA.join(' ') + '</td>';
 	}
+
 	this.phoneCell = function(phoneArray){
 		// console.log(typeof phoneArray);
 		if (typeof phoneArray != 'object') return '<td>&nbsp;</td>';
 		var $$PA = [];
 		$.each(phoneArray,function(){
 			$$PA.push(this.phoneType + ': ');
-			$$PA.push(this.number);
+			$$PA.push(self.phoneLink(this.number));
 			$$PA.push('<br />');
 		});
 		return '<td class="text-capitalize">' + $$PA.join(' ') + '</td>';
@@ -170,37 +205,35 @@ function DATASHARING(){
 		return '<td class="text-capitalize">' + status + '</td>';
 	}
 
-	this.tableMaker = function(){}
-}
-
-jQuery.extend({
-	getQueryParameters : function(str) {
-		return (str || document.location.search).replace(/(^\?)/,'').split("&").map(function(n){
-		return n = n.split("="),this[n[0]] = n[1],this}.bind({}))[0];
-	},
-	objectify : function(str){
-		return $.getQueryParameters(str);
-	},
-	unObjectify : function(obj){
-		return JSON.parse(JSON.stringify(obj));
-	},
-	ucWords : function(str){
-		str = str.toLowerCase().replace(/\b[a-z]/g, function(letter) {
-			return letter.toUpperCase();
-		});
-		return str;
-	},
-	insertCommas : function(n){
-		if (typeof n == 'undefined') return false;
-		return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	},
-	singlePlural : function(n,options){
-		return 1;
+	this.phoneLink = function(n){
+		return '<a href="tel:' + $.sanitizePhoneNumber(n) + '">' + n + '</a>';
 	}
-});
 
-function fillIn(user,pass,url){
-	$('#username').val(user);
-	$('#pwd').val(pwd);
-	$('#url').val(url);
+	this.lookAhead = function(obj,data){
+		lookAhead = {
+			username : obj.username,
+			pwd : obj.pwd,
+			url : obj.url,
+			section : obj.section,
+			page : data.number+1,
+			size : data.size
+		};
+		lookAhead.query = '?page=' + lookAhead.page + '&size=' + lookAhead.size;
+		$('#query').val(lookAhead.query);
+		console.log(lookAhead);
+	}
+
+	this.lookBehind = function(obj,data){
+		lookBehind = {
+			username : obj.username,
+			pwd : obj.pwd,
+			url : obj.url,
+			section : obj.section,
+			page : data.number-1,
+			size : data.size
+		};
+		lookBehind.query = '?page=' + lookBehind.page + '&size=' + lookBehind.size;
+		$('#query').val(lookBehind.query);
+		console.log(lookBehind);
+	}
 }

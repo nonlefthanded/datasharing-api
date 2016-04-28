@@ -2,6 +2,7 @@
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<script src="helpers.js"></script>
 <script src="datasharing.js"></script>
 <script>
 
@@ -10,14 +11,14 @@
 	// url  = 'http://pps-sandbox.americas.nwea.pvt:8080';
 
 	user = '3bc44653e681fe3140794276a76b1f6e';
-	pwd = '42133e42efe4b892';
+	pwd  = '42133e42efe4b892';
 	url  = 'https://profile-api.nwea.org/';
 
 	$(document).ready(function(){
 		DS = new DATASHARING();
 		DS.init();
 
-		fillIn(user,pwd,url);
+		$.fillIn(user,pwd,url);
 	});
 
 	
@@ -78,12 +79,32 @@
 						name="query"
 						value="" />
   				</div>
+  				<div class="form-group row">
+  					<div class="col-lg-6">
+					<label for="section">&laquo;</label>
+					<input type="text" 
+						class="form-control" 
+						id="prev" 
+						name="prev"
+						value="" />
+  					</div>
+  					<div class="col-lg-6">
+					<label for="section">&raquo;</label>
+					<input type="text" 
+						class="form-control" 
+						id="next" 
+						name="next"
+						value="" />
+  					</div>
+  				</div>
   			</div>
   		</div>
 
   		<div class="row">
   			<div class="col-md-12">
+  				<button type="submit" class="btn btn-default" id="prev">&laquo;</button>
   				<button type="submit" class="btn btn-default">Submit</button>
+  				<button type="submit" class="btn btn-default" id="next">&raquo;</button>
   			</div>
   		</div>
 
