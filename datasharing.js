@@ -19,6 +19,7 @@ function DATASHARING(){
 	}
 
 	this.submitForm = function(){
+		self = this;
 		$$FORM.submit(function(e){
 			e.preventDefault();
 			$$FORMDATA = $('#basicAuthForm').find('input[name!=query]').serialize();
@@ -33,10 +34,12 @@ function DATASHARING(){
 				data: $$FORM.serialize(),
 				success: function (data){
 					self.display(data,$$SECTION);
-					allData = $.extend($.objectify($$FORMDATA),$.objectify($('#query').val()));
-					allData.qVars = $.objectify($('#query').val());
-					console.log(allData);
-					console.log('--^-allData---------------');
+					fromForm = $.extend($.objectify($$FORMDATA),$.objectify($('#query').val()));
+					fromForm.qVars = $.objectify($('#query').val());
+					console.log(fromForm);
+					console.log('--^-fromForm---------------');
+					self.lookAhead(fromForm,data);
+					self.lookBehind(fromForm,data);
 				}
 			});
 		});
@@ -209,31 +212,32 @@ function DATASHARING(){
 		return '<a href="tel:' + $.sanitizePhoneNumber(n) + '">' + n + '</a>';
 	}
 
-	this.lookAhead = function(obj,data){
+	this.lookAhead = function(fromForm,fromResults){
 		lookAhead = {
-			username : obj.username,
-			pwd : obj.pwd,
-			url : obj.url,
-			section : obj.section,
-			page : data.number+1,
-			size : data.size
+			username : fromForm.username,
+			pwd : fromForm.pwd,
+			url : fromForm.url,
+			section : fromForm.section,
+			page : fromResults.number+1,
+			size : fromResults.size
 		};
 		lookAhead.query = '?page=' + lookAhead.page + '&size=' + lookAhead.size;
-		$('#query').val(lookAhead.query);
+		$('#next').val(lookAhead.query);
 		console.log(lookAhead);
 	}
 
-	this.lookBehind = function(obj,data){
+	this.lookBehind = function(fromForm,fromResults){
 		lookBehind = {
-			username : obj.username,
-			pwd : obj.pwd,
-			url : obj.url,
-			section : obj.section,
-			page : data.number-1,
-			size : data.size
+			username : fromForm.username,
+			pwd : fromForm.pwd,
+			url : fromForm.url,
+			section : fromForm.section,
+			page : fromResults.number-1,
+			size : fromResults.size
 		};
 		lookBehind.query = '?page=' + lookBehind.page + '&size=' + lookBehind.size;
-		$('#query').val(lookBehind.query);
+		$('#prev').val(lookBehind.query);
 		console.log(lookBehind);
 	}
+
 }
